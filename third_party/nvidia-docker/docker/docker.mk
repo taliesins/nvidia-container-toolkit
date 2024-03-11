@@ -20,7 +20,7 @@ DIST_DIR ?= $(CURDIR)/dist
 FORMAT_TARGETS := deb rpm
 
 # We add utility targets to support common os-arch combinations by mapping to the required format targets.
-DEB_TARGETS := debian10-amd64 ubuntu18.04-amd64 ubuntu18.04-arm64 ubuntu18.04-ppc64le
+DEB_TARGETS := debian10-amd64 ubuntu18.04-amd64 ubuntu18.04-arm64 ubuntu18.04-ppc64le ubuntu20.04-amd64 ubuntu20.04-arm64 ubuntu20.04-ppc64le ubuntu22.04-amd64 ubuntu22.04-arm64 ubuntu22.04-ppc64le
 RPM_TARGETS := amazonlinux2-aarch64 amazonlinux2-x86_64 centos7-x86_64 centos8-aarch64 centos8-ppc64le centos8-x86_64 opensuse-leap15.1-x86_64
 
 $(DEB_TARGETS): %: deb
@@ -44,7 +44,7 @@ PKG_VERS = $(LIB_VERSION)$(if $(LIB_TAG),~$(LIB_TAG))
 PKG_REV = 1
 MIN_TOOLKIT_PKG_VERSION = $(TOOLKIT_VERSION)$(if $(TOOLKIT_TAG),~$(TOOLKIT_TAG))-1
 
---deb: BASEIMAGE := ubuntu:18.04
+--deb: BASEIMAGE := ubuntu:22.04
 
 --rpm: BASEIMAGE := quay.io/centos/centos:stream8
 

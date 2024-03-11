@@ -82,22 +82,58 @@ package-centos8-ppc64le:
     - .dist-centos8
     - .arch-ppc64le
 
-package-ubuntu18.04-amd64:
+# package-ubuntu18.04-amd64:
+#   extends:
+#     - .package-build
+#     - .dist-ubuntu18.04
+#     - .arch-amd64
+
+# package-ubuntu18.04-arm64:
+#   extends:
+#     - .package-build
+#     - .dist-ubuntu18.04
+#     - .arch-arm64
+
+# package-ubuntu18.04-ppc64le:
+#   extends:
+#     - .package-build
+#     - .dist-ubuntu18.04
+#     - .arch-ppc64le
+
+package-ubuntu20.04-amd64:
   extends:
     - .package-build
-    - .dist-ubuntu18.04
+    - .dist-ubuntu20.04
     - .arch-amd64
 
-package-ubuntu18.04-arm64:
+package-ubuntu20.04-arm64:
   extends:
     - .package-build
-    - .dist-ubuntu18.04
+    - .dist-ubuntu20.04
     - .arch-arm64
 
-package-ubuntu18.04-ppc64le:
+package-ubuntu20.04-ppc64le:
   extends:
     - .package-build
-    - .dist-ubuntu18.04
+    - .dist-ubuntu20.04
+    - .arch-ppc64le
+
+package-ubuntu22.04-amd64:
+  extends:
+    - .package-build
+    - .dist-ubuntu22.04
+    - .arch-amd64
+
+package-ubuntu22.04-arm64:
+  extends:
+    - .package-build
+    - .dist-ubuntu22.04
+    - .arch-arm64
+
+package-ubuntu22.04-ppc64le:
+  extends:
+    - .package-build
+    - .dist-ubuntu22.04
     - .arch-ppc64le
 
 .buildx-setup:
@@ -144,9 +180,20 @@ image-ubuntu20.04:
     - .package-artifacts
     - .dist-ubuntu20.04
   needs:
-    - package-ubuntu18.04-amd64
-    - package-ubuntu18.04-arm64
-    - job: package-ubuntu18.04-ppc64le
+    - package-ubuntu20.04-amd64
+    - package-ubuntu20.04-arm64
+    - job: package-ubuntu20.04-ppc64le
+      optional: true
+
+image-ubuntu22.04:
+  extends:
+    - .image-build
+    - .package-artifacts
+    - .dist-ubuntu22.04
+  needs:
+    - package-ubuntu22.04-amd64
+    - package-ubuntu22.04-arm64
+    - job: package-ubuntu22.04-ppc64le
       optional: true
 
 # The DIST=packaging target creates an image containing all built packages
@@ -156,8 +203,12 @@ image-packaging:
     - .package-artifacts
     - .dist-packaging
   needs:
-    - job: package-ubuntu18.04-amd64
-    - job: package-ubuntu18.04-arm64
+    # - job: package-ubuntu18.04-amd64
+    # - job: package-ubuntu18.04-arm64
+    - job: package-ubuntu20.04-amd64
+    - job: package-ubuntu20.04-arm64
+    - job: package-ubuntu22.04-amd64
+    - job: package-ubuntu22.04-arm64
     - job: package-amazonlinux2-aarch64
       optional: true
     - job: package-amazonlinux2-x86_64
@@ -172,7 +223,11 @@ image-packaging:
       optional: true
     - job: package-opensuse-leap15.1-x86_64
       optional: true
-    - job: package-ubuntu18.04-ppc64le
+    # - job: package-ubuntu18.04-ppc64le
+    #   optional: true
+    - job: package-ubuntu20.04-ppc64le
+      optional: true
+    - job: package-ubuntu22.04-ppc64le
       optional: true
 
 # Define publish test helpers
@@ -232,3 +287,32 @@ test-docker-ubuntu20.04:
     - .dist-ubuntu20.04
   needs:
     - image-ubuntu20.04
+
+
+test-toolkit-ubuntu22.04:
+  extends:
+    - .test:toolkit
+    - .dist-ubuntu22.04
+  needs:
+    - image-ubuntu22.04
+
+test-containerd-ubuntu22.04:
+  extends:
+    - .test:containerd
+    - .dist-ubuntu22.04
+  needs:
+    - image-ubuntu22.04
+
+test-crio-ubuntu22.04:
+  extends:
+    - .test:crio
+    - .dist-ubuntu22.04
+  needs:
+    - image-ubuntu22.04
+
+test-docker-ubuntu22.04:
+  extends:
+    - .test:docker
+    - .dist-ubuntu22.04
+  needs:
+    - image-ubuntu22.04

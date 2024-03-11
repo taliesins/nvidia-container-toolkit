@@ -64,13 +64,13 @@ Note that only the `"legacy"` NVIDIA Container Runtime mode is directly compatib
 
 If a different mode is explicitly set or detected, the NVIDIA Container Runtime Hook will raise the following error when `--gpus` is set:
 ```
-$ docker run --rm --gpus all ubuntu:18.04
+$ docker run --rm --gpus all ubuntu:22.04
 docker: Error response from daemon: failed to create shim: OCI runtime create failed: container_linux.go:380: starting container process caused: process_linux.go:545: container init caused: Running hook #0:: error running hook: exit status 1, stdout: , stderr: Auto-detected mode as 'csv'
 invoking the NVIDIA Container Runtime Hook directly (e.g. specifying the docker --gpus flag) is not supported. Please use the NVIDIA Container Runtime instead.: unknown.
 ```
 Here NVIDIA Container Runtime must be used explicitly. The recommended way to do this is to specify the `--runtime=nvidia` command line argument as part of the `docker run` commmand as follows:
 ```
-$ docker run --rm --gpus all --runtime=nvidia ubuntu:18.04
+$ docker run --rm --gpus all --runtime=nvidia ubuntu:22.04
 ```
 
 Alternatively the NVIDIA Container Runtime can be set as the default runtime for docker. This can be done by modifying the `/etc/docker/daemon.json` file as follows:

@@ -36,8 +36,8 @@ jobs:
     - name: Get Golang version
       id: vars
       run: |
-        GOLANG_VERSION=$( grep "GOLANG_VERSION :=" versions.mk )
-        echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION := }" >> $GITHUB_ENV
+        GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
+        echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
     - name: Install Go
       uses: actions/setup-go@v5
       with:
@@ -56,21 +56,33 @@ jobs:
       steps:
         - name: Checkout code
           uses: actions/checkout@v4
-        - name: Get Golang version
+        - name: Calculate build vars
           id: vars
           run: |
-            GOLANG_VERSION=$( grep "GOLANG_VERSION :=" versions.mk )
-            echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION := }" >> $GITHUB_ENV
+            GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
+            echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
+    
+            echo "LOWERCASE_REPO_OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | awk '{print tolower($0)}')" >> $GITHUB_ENV
         - name: Install Go
           uses: actions/setup-go@v5
           with:
             go-version: ${{ env.GOLANG_VERSION }}
-        - run: make test
+        - env:
+            BUILDIMAGE: ghcr.io/${LOWERCASE_REPO_OWNER}/k8s-test-infra:devel-go${GOLANG_VERSION}
+          run: make test
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       name: Checkout code
+    - name: Calculate build vars
+      id: vars
+      run: |
+        GOLANG_VERSION=$( grep "GOLANG_VERSION ?=" versions.mk )
+        echo "GOLANG_VERSION=${GOLANG_VERSION##GOLANG_VERSION ?= }" >> $GITHUB_ENV
 
+        echo "LOWERCASE_REPO_OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | awk '{print tolower($0)}')" >> $GITHUB_ENV
     - name: Build
+      env:
+        BUILDIMAGE: ghcr.io/${LOWERCASE_REPO_OWNER}/k8s-test-infra:devel-go${GOLANG_VERSION}
       run: make docker-build

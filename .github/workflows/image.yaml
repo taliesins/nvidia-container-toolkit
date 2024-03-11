@@ -34,9 +34,15 @@ jobs:
     strategy:
       matrix:
         target:
-          - ubuntu18.04-arm64
-          - ubuntu18.04-amd64
-          - ubuntu18.04-ppc64le
+          - ubuntu22.04-arm64
+          - ubuntu22.04-amd64
+          - ubuntu22.04-ppc64le
+          - ubuntu20.04-arm64
+          - ubuntu20.04-amd64
+          - ubuntu20.04-ppc64le
+          # - ubuntu18.04-arm64
+          # - ubuntu18.04-amd64
+          # - ubuntu18.04-ppc64le
           - centos7-aarch64
           - centos7-x86_64
           - centos8-ppc64le
@@ -44,9 +50,21 @@ jobs:
           - ${{github.event_name == 'pull_request'}}
         exclude:
           - ispr: true
-            target: ubuntu18.04-arm64
+            target: ubuntu22.04-arm64
           - ispr: true
-            target: ubuntu18.04-ppc64le
+            target: ubuntu22.04-ppc64le
+          - ispr: true
+            target: ubuntu20.04-amd64
+          - ispr: true
+            target: ubuntu20.04-arm64
+          - ispr: true
+            target: ubuntu20.04-ppc64le
+          # - ispr: true
+          #   target: ubuntu18.04-amd64
+          # - ispr: true
+          #   target: ubuntu18.04-arm64
+          # - ispr: true
+          #   target: ubuntu18.04-ppc64le
           - ispr: true
             target: centos7-aarch64
           - ispr: true
@@ -76,12 +94,15 @@ jobs:
     strategy:
       matrix:
         dist:
+          - ubuntu22.04
           - ubuntu20.04
           - ubi8
           - packaging
         ispr:
           - ${{github.event_name == 'pull_request'}}
         exclude:
+          - ispr: true
+            dist: ubuntu20.04
           - ispr: true
             dist: ubi8
     needs: packages
@@ -131,6 +152,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         env:
+          BUILDIMAGE: ghcr.io/${LOWERCASE_REPO_OWNER}/k8s-test-infra:devel-go${GOLANG_VERSION}
           IMAGE_NAME: ghcr.io/${LOWERCASE_REPO_OWNER}/container-toolkit
           VERSION: ${COMMIT_SHORT_SHA}
         run: |

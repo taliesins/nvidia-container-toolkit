@@ -24,6 +24,12 @@ all=(
     ubuntu18.04-amd64
     ubuntu18.04-arm64
     ubuntu18.04-ppc64le
+    ubuntu20.04-amd64
+    ubuntu20.04-arm64
+    ubuntu20.04-ppc64le
+    ubuntu22.04-amd64
+    ubuntu22.04-arm64
+    ubuntu22.04-ppc64le
 )
 
 # package_type returns the packaging type (deb or rpm) for the specfied distribution.

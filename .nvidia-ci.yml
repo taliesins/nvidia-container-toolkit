@@ -79,6 +79,11 @@ image-ubuntu20.04:
     - .dist-ubuntu20.04
     - .image-pull
 
+image-ubuntu22.04:
+  extends:
+    - .dist-ubuntu22.04
+    - .image-pull
+
 # The DIST=packaging target creates an image containing all built packages
 image-packaging:
   extends:
@@ -127,6 +132,7 @@ image-packaging:
       - policy_evaluation.json
 
 # Define the scan targets
+
 scan-ubuntu20.04-amd64:
   extends:
     - .dist-ubuntu20.04
@@ -143,6 +149,23 @@ scan-ubuntu20.04-arm64:
   needs:
     - image-ubuntu20.04
     - scan-ubuntu20.04-amd64
+
+scan-ubuntu22.04-amd64:
+  extends:
+    - .dist-ubuntu22.04
+    - .platform-amd64
+    - .scan
+  needs:
+    - image-ubuntu22.04
+
+scan-ubuntu22.04-arm64:
+  extends:
+    - .dist-ubuntu22.04
+    - .platform-arm64
+    - .scan
+  needs:
+    - image-ubuntu22.04
+    - scan-ubuntu22.04-amd64
 
 scan-ubi8-amd64:
   extends:
@@ -228,11 +251,23 @@ release:staging-ubuntu20.04:
   needs:
     - image-ubuntu20.04
 
+release:staging-ubuntu22.04:
+  extends:
+    - .release:staging
+    - .dist-ubuntu22.04
+  needs:
+    - image-ubuntu22.04
+
 # Define the external release targets
 # Release to NGC
 release:ngc-ubuntu20.04:
   extends:
     - .dist-ubuntu20.04
+    - .release:ngc
+
+release:ngc-ubuntu22.04:
+  extends:
+    - .dist-ubuntu22.04
     - .release:ngc
 
 release:ngc-ubi8:
