@@ -58,8 +58,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcap2 \
     curl \
-        && \
-    rm -rf /var/lib/apt/lists/*
+    libelf1 \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV NVIDIA_DISABLE_REQUIRE="true"
 ENV NVIDIA_VISIBLE_DEVICES=void
