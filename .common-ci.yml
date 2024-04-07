@@ -89,13 +89,17 @@ trigger-pipeline:
   variables:
     DIST: ubi8
 
-.dist-ubuntu18.04:
-  variables:
-    DIST: ubuntu18.04
+# .dist-ubuntu18.04:
+#   variables:
+#     DIST: ubuntu18.04
 
 .dist-ubuntu20.04:
   variables:
     DIST: ubuntu20.04
+
+.dist-ubuntu22.04:
+  variables:
+    DIST: ubuntu22.04
 
 .dist-packaging:
   variables:
@@ -241,6 +245,16 @@ release:staging-ubuntu20.04:
     - test-crio-ubuntu20.04
     - test-docker-ubuntu20.04
 
+release:staging-ubuntu22.04:
+  extends:
+    - .release:staging
+    - .dist-ubuntu22.04
+  needs:
+    - test-toolkit-ubuntu22.04
+    - test-containerd-ubuntu22.04
+    - test-crio-ubuntu22.04
+    - test-docker-ubuntu22.04
+    
 release:staging-packaging:
   extends:
     - .release:staging

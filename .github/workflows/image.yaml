@@ -34,22 +34,40 @@ jobs:
     strategy:
       matrix:
         target:
-          - ubuntu18.04-arm64
-          - ubuntu18.04-amd64
-          - ubuntu18.04-ppc64le
+          - ubuntu22.04-arm64
+          - ubuntu22.04-amd64
+          - ubuntu22.04-ppc64le
+          - ubuntu20.04-arm64
+          - ubuntu20.04-amd64
+          - ubuntu20.04-ppc64le
+          # - ubuntu18.04-arm64
+          # - ubuntu18.04-amd64
+          # - ubuntu18.04-ppc64le
           - centos7-aarch64
           - centos7-x86_64
           - centos8-ppc64le
-        ispr:
-          - ${{github.event_name == 'pull_request'}}
+        do-not-build:
+          - ${{ !(github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')) || github.event_name == 'pull_request' || github.actor == 'dependabot[bot]' }}
         exclude:
-          - ispr: true
-            target: ubuntu18.04-arm64
-          - ispr: true
-            target: ubuntu18.04-ppc64le
-          - ispr: true
+          # - do-not-build: true
+          #   target: ubuntu22.04-arm64
+          - do-not-build: true
+            target: ubuntu22.04-ppc64le
+          - do-not-build: true
+            target: ubuntu20.04-amd64
+          - do-not-build: true
+            target: ubuntu20.04-arm64
+          - do-not-build: true
+            target: ubuntu20.04-ppc64le
+          # - do-not-build: true
+          #   target: ubuntu18.04-amd64
+          # - do-not-build: true
+          #   target: ubuntu18.04-arm64
+          # - do-not-build: true
+          #   target: ubuntu18.04-ppc64le
+          - do-not-build: true
             target: centos7-aarch64
-          - ispr: true
+          - do-not-build: true
             target: centos8-ppc64le
       fail-fast: false
     steps:
@@ -76,13 +94,16 @@ jobs:
     strategy:
       matrix:
         dist:
+          - ubuntu22.04
           - ubuntu20.04
           - ubi8
           - packaging
-        ispr:
-          - ${{github.event_name == 'pull_request'}}
+        do-not-build:
+          - ${{ !(github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-')) || github.event_name == 'pull_request' || github.actor == 'dependabot[bot]' }}
         exclude:
-          - ispr: true
+          - do-not-build: true
+            dist: ubuntu20.04
+          - do-not-build: true
             dist: ubi8
     needs: packages
     steps:
@@ -99,19 +120,36 @@ jobs:
 
           PUSH_ON_BUILD="false"
           BUILD_MULTI_ARCH_IMAGES="false"
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            if [[ "${{ github.actor }}" != "dependabot[bot]" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
-              # For non-fork PRs that are not created by dependabot we do push images
-              PUSH_ON_BUILD="true"
-            fi
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            # On push events we do generate images and enable muilti-arch builds
+          DOCKER_BUILD_PLATFORM_OPTIONS=""
+
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            PUSH_ON_BUILD="false"
+            BUILD_MULTI_ARCH_IMAGES="false"
+          elif [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
             PUSH_ON_BUILD="true"
             BUILD_MULTI_ARCH_IMAGES="true"
+            DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64,linux/arm64"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PUSH_ON_BUILD="false"
+            BUILD_MULTI_ARCH_IMAGES="true"
+            DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64,linux/arm64"
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release-') }}" == "true" ]]; then
+            PUSH_ON_BUILD="true"
+            BUILD_MULTI_ARCH_IMAGES="true"
+            if [[ "${{ matrix.dist == 'ubi8'}}" == "true" ]]; then
+              DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64,linux/arm64,linux/ppc64le"
+            elif [[ "${{ matrix.dist == 'ubuntu18.04'}}" == "true" ]]; then
+              DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64"
+            elif [[ "${{ matrix.dist == 'packaging'}}" == "true" ]]; then
+              DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64"
+            else
+              DOCKER_BUILD_PLATFORM_OPTIONS="--platform=linux/amd64,linux/arm64"
+            fi
           fi
+
           echo "PUSH_ON_BUILD=${PUSH_ON_BUILD}" >> $GITHUB_ENV
           echo "BUILD_MULTI_ARCH_IMAGES=${BUILD_MULTI_ARCH_IMAGES}" >> $GITHUB_ENV
-
+          echo "DOCKER_BUILD_PLATFORM_OPTIONS=${DOCKER_BUILD_PLATFORM_OPTIONS}" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -120,7 +158,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ${{ github.workspace }}/dist/
-          pattern: toolkit-container-*-${{ github.run_id }}
+          pattern: toolkit-container-${{ matrix.dist == 'packaging' && '*' || format('{0}-*', matrix.dist == 'ubi8' && 'centos7' || matrix.dist) }}-${{ github.run_id }}
           merge-multiple: true
 
       - name: Login to GitHub Container Registry
@@ -131,6 +169,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         env:
+          BUILDIMAGE: ghcr.io/${LOWERCASE_REPO_OWNER}/k8s-test-infra:devel-go${GOLANG_VERSION}
           IMAGE_NAME: ghcr.io/${LOWERCASE_REPO_OWNER}/container-toolkit
           VERSION: ${COMMIT_SHORT_SHA}
         run: |

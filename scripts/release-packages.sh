@@ -175,7 +175,7 @@ for target in ${targets[@]}; do
     echo "checking target=${target}"
     by_package_type=
     case ${target} in
-    ubuntu18.04-* | centos7-*)
+    ubuntu22.04-* | ubuntu20.04-* | ubuntu18.04-* | centos7-*)
         by_package_type="true"
         ;;
     centos8-ppc64le)

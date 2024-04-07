@@ -44,8 +44,8 @@ OUT_IMAGE_TAG = $(OUT_IMAGE_VERSION)-$(DIST)
 OUT_IMAGE = $(OUT_IMAGE_NAME):$(OUT_IMAGE_TAG)
 
 ##### Public rules #####
-DEFAULT_PUSH_TARGET := ubuntu20.04
-DISTRIBUTIONS := ubuntu20.04 ubi8
+DEFAULT_PUSH_TARGET := ubuntu22.04
+DISTRIBUTIONS := ubuntu22.04 ubuntu20.04 ubi8
 
 META_TARGETS := packaging
 
@@ -112,13 +112,16 @@ $(BUILD_TARGETS): build-%: $(ARTIFACTS_ROOT)
 
 build-ubuntu%: BASE_DIST = $(*)
 build-ubuntu%: DOCKERFILE_SUFFIX := ubuntu
-build-ubuntu%: PACKAGE_DIST = ubuntu18.04
+build-ubuntu16.04: PACKAGE_DIST = ubuntu16.04
+build-ubuntu18.04: PACKAGE_DIST = ubuntu18.04
+build-ubuntu20.04: PACKAGE_DIST = ubuntu20.04
+build-ubuntu22.04: PACKAGE_DIST = ubuntu22.04
 
 build-ubi8: BASE_DIST := ubi8
 build-ubi8: DOCKERFILE_SUFFIX := centos
 build-ubi8: PACKAGE_DIST = centos7
 
-build-packaging: BASE_DIST := ubuntu20.04
+build-packaging: BASE_DIST := ubuntu22.04
 build-packaging: DOCKERFILE_SUFFIX := packaging
 build-packaging: PACKAGE_ARCH := amd64
 build-packaging: PACKAGE_DIST = all
@@ -143,3 +146,9 @@ test-packaging:
 	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu18.04/amd64" || echo "Missing ubuntu18.04/amd64"
 	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu18.04/arm64" || echo "Missing ubuntu18.04/arm64"
 	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu18.04/ppc64le" || echo "Missing ubuntu18.04/ppc64le"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu20.04/amd64" || echo "Missing ubuntu20.04/amd64"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu20.04/arm64" || echo "Missing ubuntu20.04/arm64"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu20.04/ppc64le" || echo "Missing ubuntu20.04/ppc64le"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu22.04/amd64" || echo "Missing ubuntu22.04/amd64"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu22.04/arm64" || echo "Missing ubuntu22.04/arm64"
+	@$(DOCKER) run --rm $(IMAGE) test -d "/artifacts/packages/ubuntu22.04/ppc64le" || echo "Missing ubuntu22.04/ppc64le"

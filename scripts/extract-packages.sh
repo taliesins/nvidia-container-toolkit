@@ -111,6 +111,8 @@ function extract-all() {
 mkdir -p "${ARTIFACTS_DIR}"
 copy-file "${PACKAGE_IMAGE}" "/artifacts/manifest.txt" "${ARTIFACTS_DIR}/manifest.txt"
 
+extract-all ubuntu22.04
+extract-all ubuntu20.04
 extract-all ubuntu18.04
 extract-all centos8
 extract-all centos7
